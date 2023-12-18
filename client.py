@@ -1,33 +1,36 @@
-import speedtest
+# CLient Program to send data from server to client in order to achieve about 100Mbps speed between 2 different systems
 import socket
 import time
 
-def get_ping():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('localhost', 5555))
-    start_time = time.time()
-    client_socket.sendall('ping'.encode('utf-8'))
-    client_socket.recv(1024)
-    end_time = time.time()
-    client_socket.close()
-    ping_time = end_time - start_time
-    return ping_time
+# Server configuration
+HOST = 'localhost'  # Server IP address
+PORT = 1234       # Server port number
+BUFFER_SIZE = 8192
 
-def get_speed():
-    st = speedtest.Speedtest()
-    st.get_best_server()  # Automatically selects the best server
-    download_speed = st.download() / 1_000_000  # Convert to Mbps
-    upload_speed = st.upload() / 1_000_000  # Convert to Mbps
-    return download_speed, upload_speed 
+def send_data(client_socket):
+    
+    # Generate dummy data
+    
+    data = b'X' * 10 * 1024 * 1024  # 10 MB
+    client_socket.sendall(data)
 
+    upload_speed = b''
+    while True:
+        chunk = client_socket.recv(BUFFER_SIZE)
+        upload_speed += chunk
+        if b'\n' in chunk:
+            break
+    
+    return float(upload_speed.decode().strip())
 
-def main():
-    ping_time = get_ping()
-    download_speed, upload_speed = get_speed()
+if __name__ == '__main__':
+    client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    client_socket.connect((HOST, PORT))
+    sum = 0.0
+    for i in range(0,10):
+        upload_speed = send_data(client_socket)
+        print('Data sent successfully.')
+        print('upload speed is : ',upload_speed,' Mbps')
+        sum += upload_speed
 
-    print(f"Ping Time: {ping_time:.2f} seconds")
-    print(f"Download Speed: {download_speed:.2f} Mbps")
-    print(f"Upload Speed: {upload_speed:.2f} Mbps")
-
-if __name__ == "__main__":
-    main()
+    print("average upload speed is : ",sum/10)
