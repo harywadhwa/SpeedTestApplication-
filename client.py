@@ -25,10 +25,10 @@ def download(client_socket):
 
         end_time = time.time()
 
-        if data_size == 0:
-            # print("connection with ",client_address," is closed")
-            client_socket.close()
-            break
+        # if data_size == 0:
+        #     # print("connection with ",client_address," is closed")
+        #     # client_socket.close()
+        #     break
 
         download_speed = calculate_speed(start_time, end_time, data_size)
         download_speed_str = str(download_speed) + '\n'
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     client_socket.connect((HOST, PORT))
 
-    # upload(client_socket)
     download(client_socket)
-
-    client_socket.close()    
+    upload(client_socket)
+    
+    client_socket.close()  
