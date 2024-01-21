@@ -1,6 +1,8 @@
 import socket
 import time
 import threading
+import sys
+
 HOST = 'localhost'  # Server IP address
 PORT = 1234        # Server port number
 BUFFER_SIZE = 8192  # 8 KB
@@ -8,6 +10,10 @@ FORMAT = "utf-8"
 
 def calculate_speed(start_time, end_time, data_size):
     duration = end_time - start_time
+    #to avoid division by zero
+    if duration == 0:
+        return 0.0
+    
     speed = data_size / duration  # Bytes per second
     speed = speed/125000
     return speed
@@ -74,13 +80,37 @@ def start_server(client_socket, client_address):
 
 def listen():
 
-    server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    server_socket.bind((HOST,PORT))
+    # create a server socket
+    try:
+        server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    except socket.error as err:
+        print("socket creation failed with error %s" %(err))
+        sys.exit(1)
+    
+    # bind the socket with server and port number
+    try:
+        server_socket.bind((HOST,PORT))
+    except socket.error as err:
+        print("socket binding failed with error %s" %(err))
+        sys.exit(1)
 
     while True:
         print('Server listening on {}:{}'.format(HOST, PORT))
-        server_socket.listen(3)
-        client_socket, client_address = server_socket.accept()
+
+        # listen for connection
+        try:
+            server_socket.listen(3)
+        except socket.error as err:
+            print("socket listening failed with error %s" %(err))
+            sys.exit(1)
+        
+        # accept the connection
+        try:    
+            client_socket, client_address = server_socket.accept()
+        except socket.error as err:
+            print("socket accepting failed with error %s" %(err))
+            sys.exit(1)
+        
         print("connected to ",client_address)
         thread = threading.Thread(target=start_server, args=(client_socket, client_address))
         thread.start()
@@ -88,6 +118,3 @@ def listen():
 
 if __name__ == '__main__':
     listen()
-    
-
-
