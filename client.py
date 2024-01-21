@@ -1,5 +1,7 @@
 import socket
 import time
+import sys
+
 HOST = 'localhost'  # Server IP address
 PORT = 1234       # Server port number
 BUFFER_SIZE = 8192
@@ -7,6 +9,10 @@ FORMAT = "utf-8"
 
 def calculate_speed(start_time, end_time, data_size):
     duration = end_time - start_time
+    # to avoid division by zero
+    if duration == 0:
+        return 0.0
+    
     speed = data_size / duration  # Bytes per second
     speed = speed / 125000  # Convert to Mbps
     return speed
@@ -61,8 +67,19 @@ def send_data(client_socket):
     return float(upload_speed.decode().strip())
 
 if __name__ == '__main__':
-    client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    client_socket.connect((HOST, PORT))
+    # Create client socket
+    try:
+        client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    except socket.error as e:
+        print("Error creating socket: %s" % e)
+        sys.exit(1)
+
+    # Connect to server
+    try:
+        client_socket.connect((HOST, PORT))
+    except socket.error as e:
+        print("Connection error: %s" % e)
+        sys.exit(1)
 
     download(client_socket)
     upload(client_socket)
